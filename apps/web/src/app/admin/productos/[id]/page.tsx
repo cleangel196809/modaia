@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   Box,
@@ -18,13 +18,21 @@ import {
   TableBody,
   CircularProgress,
   Alert,
+  IconButton,
 } from '@mui/material';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import {
   useGetProductQuery,
   useUpdateProductMutation,
   useAdjustStockMutation,
   useGetProductMovementsQuery,
+  useGetCategoriesQuery,
+  useUploadImageMutation,
 } from '@/store/api/apiSlice';
+
+// eslint-disable-next-line @next/next/no-img-element
+const Thumb = ({ src }: { src: string }) => <img src={src} alt="" style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8 }} />;
 
 const currencyFormatter = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -37,14 +45,38 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const { data: product, isLoading } = useGetProductQuery(id);
   const { data: movements } = useGetProductMovementsQuery(id);
+  const { data: categories } = useGetCategoriesQuery();
   const [updateProduct] = useUpdateProductMutation();
   const [adjustStock, { isLoading: adjusting, error: adjustError }] = useAdjustStockMutation();
+  const [uploadImage, { isLoading: uploading }] = useUploadImageMutation();
 
   const [price, setPrice] = useState('');
   const [cost, setCost] = useState('');
   const [movementType, setMovementType] = useState<'in' | 'out' | 'adjustment'>('in');
   const [quantity, setQuantity] = useState('');
   const [reason, setReason] = useState('');
+
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [material, setMaterial] = useState('');
+  const [sizesText, setSizesText] = useState('');
+  const [colorsText, setColorsText] = useState('');
+  const [images, setImages] = useState<string[]>([]);
+  const [infoSaved, setInfoSaved] = useState(false);
+  const [infoError, setInfoError] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!product) return;
+    setName(product.name);
+    setDescription(product.description ?? '');
+    setCategoryId(product.categoryId);
+    setMaterial(product.material ?? '');
+    setSizesText(product.sizes.join(', '));
+    setColorsText(product.colors.join(', '));
+    setImages(product.images ?? []);
+  }, [product]);
 
   if (isLoading || !product) {
     return (
@@ -64,6 +96,50 @@ export default function ProductDetailPage() {
     }).unwrap();
     setPrice('');
     setCost('');
+  }
+
+  async function handleSaveInfo() {
+    setInfoSaved(false);
+    setInfoError(false);
+    try {
+      await updateProduct({
+        id,
+        body: {
+          name,
+          description,
+          categoryId,
+          material,
+          sizes: sizesText
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean),
+          colors: colorsText
+            .split(',')
+            .map((c) => c.trim())
+            .filter(Boolean),
+          images,
+        },
+      }).unwrap();
+      setInfoSaved(true);
+    } catch {
+      setInfoError(true);
+    }
+  }
+
+  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const { url } = await uploadImage(file).unwrap();
+      setImages((prev) => [...prev, url]);
+    } catch {
+      setInfoError(true);
+    }
+  }
+
+  function handleRemoveImage(url: string) {
+    setImages((prev) => prev.filter((img) => img !== url));
   }
 
   async function handleAdjustStock() {
@@ -89,6 +165,101 @@ export default function ProductDetailPage() {
       </Typography>
 
       <Grid container spacing={3} sx={{ mt: 1 }}>
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+              Información del producto
+            </Typography>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField label="Nombre" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
+                <TextField
+                  select
+                  label="Categoría"
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  fullWidth
+                >
+                  {categories?.map((cat) => (
+                    <MenuItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
+              <TextField
+                label="Descripción"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                multiline
+                minRows={2}
+                fullWidth
+              />
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField label="Material" value={material} onChange={(e) => setMaterial(e.target.value)} fullWidth />
+                <TextField
+                  label="Tallas (separadas por coma)"
+                  value={sizesText}
+                  onChange={(e) => setSizesText(e.target.value)}
+                  fullWidth
+                />
+                <TextField
+                  label="Colores (separados por coma)"
+                  value={colorsText}
+                  onChange={(e) => setColorsText(e.target.value)}
+                  fullWidth
+                />
+              </Stack>
+
+              <Typography variant="body2" fontWeight={600}>
+                Imágenes
+              </Typography>
+              <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap alignItems="center">
+                {images.map((url) => (
+                  <Box key={url} sx={{ position: 'relative' }}>
+                    <Thumb src={url} />
+                    <IconButton
+                      size="small"
+                      onClick={() => handleRemoveImage(url)}
+                      sx={{
+                        position: 'absolute',
+                        top: -8,
+                        right: -8,
+                        bgcolor: 'background.paper',
+                        boxShadow: 1,
+                        '&:hover': { bgcolor: 'error.light' },
+                      }}
+                    >
+                      <DeleteOutlineIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ))}
+                <Button
+                  variant="outlined"
+                  startIcon={<AddPhotoAlternateOutlinedIcon />}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? 'Subiendo...' : 'Agregar imagen'}
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  hidden
+                  onChange={handleFileSelected}
+                />
+              </Stack>
+
+              {infoSaved && <Alert severity="success">Cambios guardados.</Alert>}
+              {infoError && <Alert severity="error">No se pudo guardar. Revisa los campos e intenta de nuevo.</Alert>}
+              <Button variant="contained" onClick={handleSaveInfo} sx={{ alignSelf: 'flex-start' }}>
+                Guardar información
+              </Button>
+            </Stack>
+          </Paper>
+        </Grid>
+
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="subtitle1" fontWeight={600} gutterBottom>

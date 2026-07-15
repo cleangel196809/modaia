@@ -10,4 +10,7 @@ coverage/
 apps/api/.env
 apps/web/.env
 
+# Imágenes subidas en desarrollo local sin Docker (con Docker viven en un volumen aparte)
+apps/api/uploads/
+
 .DS_Store

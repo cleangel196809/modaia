@@ -1,15 +1,22 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import { join } from 'path';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
+
+  // Sirve las imágenes subidas por UploadsController bajo el mismo prefijo /api,
+  // así el proxy de Next.js (next.config.js) las alcanza igual que cualquier
+  // endpoint de la API, sin configuración adicional para acceso desde LAN/móvil.
+  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/api/uploads' });
 
   app.use(helmet());
   app.enableCors({

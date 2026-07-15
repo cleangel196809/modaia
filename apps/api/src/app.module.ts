@@ -20,6 +20,7 @@ import { DropshippingModule } from './modules/dropshipping/dropshipping.module';
 import { TrendsModule } from './modules/trends/trends.module';
 import { MarketingModule } from './modules/marketing/marketing.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { ChatbotModule } from './modules/chatbot/chatbot.module';
     TrendsModule,
     MarketingModule,
     ChatbotModule,
+    UploadsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

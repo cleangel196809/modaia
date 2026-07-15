@@ -58,6 +58,10 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
     ports:
       - '3001:3001'
+    volumes:
+      # Imágenes subidas por UploadsController (multer, guarda en disco) — sin este
+      # volumen se perderían cada vez que se recrea el contenedor.
+      - modaia_uploads_data:/app/uploads
 
   web:
     build:
@@ -75,3 +79,4 @@ services:
 
 volumes:
   modaia_db_data:
+  modaia_uploads_data:

@@ -313,6 +313,13 @@ export const apiSlice = createApi({
       query: (id) => ({ url: `/products/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Product'],
     }),
+    uploadImage: builder.mutation<{ url: string }, File>({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return { url: '/uploads/image', method: 'POST', body: formData };
+      },
+    }),
 
     adjustStock: builder.mutation<
       InventoryMovement,
@@ -450,6 +457,7 @@ export const {
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
+  useUploadImageMutation,
   useAdjustStockMutation,
   useGetLowStockAlertsQuery,
   useGetProductMovementsQuery,
