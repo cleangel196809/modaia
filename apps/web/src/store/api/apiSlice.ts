@@ -68,9 +68,11 @@ export interface Product {
   category: Category;
   providerId?: string | null;
   price: number;
-  cost: number;
-  margin: number;
-  marginPercentage: number;
+  // Solo vienen en rutas autenticadas (GET /products/:id/manage, /products/mine,
+  // create, update) — las rutas públicas (catálogo) nunca exponen costo/margen.
+  cost?: number;
+  margin?: number;
+  marginPercentage?: number;
   stock: number;
   lowStockThreshold: number;
   leadTimeDays: number;
@@ -301,6 +303,12 @@ export const apiSlice = createApi({
       query: (id) => `/products/${id}`,
       providesTags: (_result, _error, id) => [{ type: 'Product', id }],
     }),
+    // Autenticado (ADMIN o el PROVIDER dueño) — a diferencia de getProduct, sí trae
+    // cost/margin/marginPercentage. Úsese en pantallas de edición, no en el catálogo.
+    getProductForManagement: builder.query<Product, string>({
+      query: (id) => `/products/${id}/manage`,
+      providesTags: (_result, _error, id) => [{ type: 'Product', id }],
+    }),
     createProduct: builder.mutation<Product, Partial<Product>>({
       query: (body) => ({ url: '/products', method: 'POST', body }),
       invalidatesTags: ['Product'],
@@ -454,6 +462,7 @@ export const {
   useCreateCategoryMutation,
   useGetProductsQuery,
   useGetProductQuery,
+  useGetProductForManagementQuery,
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,

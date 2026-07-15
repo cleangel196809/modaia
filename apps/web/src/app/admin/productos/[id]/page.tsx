@@ -23,7 +23,7 @@ import {
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import {
-  useGetProductQuery,
+  useGetProductForManagementQuery,
   useUpdateProductMutation,
   useAdjustStockMutation,
   useGetProductMovementsQuery,
@@ -43,7 +43,7 @@ const currencyFormatter = new Intl.NumberFormat('es-CO', {
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { data: product, isLoading } = useGetProductQuery(id);
+  const { data: product, isLoading } = useGetProductForManagementQuery(id);
   const { data: movements } = useGetProductMovementsQuery(id);
   const { data: categories } = useGetCategoriesQuery();
   const [updateProduct] = useUpdateProductMutation();
@@ -266,8 +266,8 @@ export default function ProductDetailPage() {
               Precio y costo
             </Typography>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-              Actual: {currencyFormatter.format(product.price)} · Costo {currencyFormatter.format(product.cost)} ·
-              Margen {product.marginPercentage}%
+              Actual: {currencyFormatter.format(product.price)} · Costo {currencyFormatter.format(product.cost ?? 0)} ·
+              Margen {product.marginPercentage ?? 0}%
             </Typography>
             <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
               <TextField

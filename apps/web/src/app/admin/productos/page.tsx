@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
-import { useDeleteProductMutation, useGetProductsQuery } from '@/store/api/apiSlice';
+import { useDeleteProductMutation, useGetMyProductsQuery } from '@/store/api/apiSlice';
 import { ProductFormDialog } from '@/components/ProductFormDialog';
 import { MarketingGeneratorDialog } from '@/components/MarketingGeneratorDialog';
 
@@ -30,7 +30,7 @@ const currencyFormatter = new Intl.NumberFormat('es-CO', {
 export default function AdminProductsPage() {
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { data: products, isLoading } = useGetProductsQuery({ search: search || undefined, limit: 50 });
+  const { data: products, isLoading } = useGetMyProductsQuery({ search: search || undefined, limit: 50 });
   const [deleteProduct] = useDeleteProductMutation();
   const [marketingTarget, setMarketingTarget] = useState<{ id: string; name: string } | null>(null);
 
@@ -75,7 +75,7 @@ export default function AdminProductsPage() {
                 </TableCell>
                 <TableCell>{product.category?.name}</TableCell>
                 <TableCell align="right">{currencyFormatter.format(product.price)}</TableCell>
-                <TableCell align="right">{product.marginPercentage}%</TableCell>
+                <TableCell align="right">{product.marginPercentage ?? 0}%</TableCell>
                 <TableCell align="right">
                   {product.stock}
                   {product.stock <= product.lowStockThreshold && (

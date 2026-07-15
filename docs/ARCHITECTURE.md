@@ -134,15 +134,20 @@ Se implementó `POST /size-advisor/recommend` (JWT requerido) para calcular:
 
 La recomendación usa el último `BodyProfile` del usuario o medidas manuales enviadas en la request. Si se envía `productId`, la recomendación se restringe a las tallas realmente disponibles en esa prenda (`Product.sizes`). La puntuación pondera busto/cintura/cadera según tipo de prenda (top, bottom, dress, outerwear).
 
-## Módulo Probador virtual 3D (Fase 2 MVP)
+## Módulo Probador virtual 3D
 
-Se agregó una experiencia inicial en `/probador` usando Three.js:
+`/probador?producto=<id>` (Three.js + `OrbitControls`, `apps/web/src/app/probador/page.tsx`):
 
-- avatar/maniquí 3D simplificado
-- cambio de tipo de prenda base (blusa, chaqueta, vestido)
-- vistas frontal/lateral/posterior
-- animación de movimiento base
-- verificación de soporte WebXR en navegador
+- **Silueta real**: si la usuaria tiene un `BodyProfile` guardado (o sube una foto ahí mismo — mismo pipeline de MediaPipe que `/medidas`), el maniquí se escala por proporción respecto a valores de referencia (`REFERENCE` en el archivo) — no es un maniquí genérico fijo.
+- **Prenda según tipo real**, inferido por `inferGarmentKind()` (`apps/web/src/lib/garmentKind.ts`) a partir del nombre del producto (más confiable que la categoría, que en los datos de prueba es inconsistente — ej. "Falda artesanal Andina" está categorizada como "Conjuntos"):
+  - `blusa` → cilindro de cintura hacia arriba.
+  - `falda` → cilindro de cadera hacia abajo, escalado por ancho de cadera.
+  - `chaqueta` → dos capas: una blusa base de color neutro + la chaqueta (color real del producto) encima, simulando que se lleva puesta sobre otra prenda.
+  - `conjunto` → blusa + falda juntas, cuerpo completo.
+- **Color real**: selector limitado a `product.colors` (nunca un color libre), mapeado a hex vía `colorNameToHex()` (`apps/web/src/lib/colorNames.ts`).
+- **Rotación 360° real**: `OrbitControls` orbita la cámara con el mouse/dedo (con damping), no son 3 vistas fijas como en la versión anterior.
+
+Sigue siendo geometría primitiva (cápsulas/cilindros con escala no uniforme), no un escaneo 3D real del cuerpo ni una simulación física de tela — sería el siguiente salto de fidelidad, y requeriría un pipeline de reconstrucción 3D a partir de foto(s) que no existe aquí.
 
 Este MVP valida el flujo UX y el pipeline técnico de render en cliente. La simulación física avanzada de tela y el avatar 3D personalizado se planifican en la siguiente iteración.
 

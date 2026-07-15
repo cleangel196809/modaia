@@ -107,6 +107,17 @@ export class ProductsService {
     return this.withMargin(product);
   }
 
+  /**
+   * GET /products/:id/manage — autenticado (ADMIN o el PROVIDER dueño de la prenda).
+   * Es lo que usa la pantalla de edición del panel para mostrar precio/costo/margen;
+   * a diferencia de GET /products/:id (público) sí incluye cost/margin.
+   */
+  async findOneForManagement(id: string, actingUser: ActingUser): Promise<ProductWithMargin> {
+    const product = await this.getByIdOrThrow(id);
+    this.assertOwnership(product, actingUser);
+    return this.withMargin(product);
+  }
+
   async findBySku(sku: string): Promise<Product | null> {
     return this.repo.findOne({ where: { sku } });
   }

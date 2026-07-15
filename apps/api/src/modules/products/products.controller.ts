@@ -22,7 +22,11 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.PROVIDER)
   findMine(@Query() query: ManageQueryProductDto, @CurrentUser() user: ActingUser) {
-    return this.productsService.findMine({ ...query, providerId: user.userId });
+    // Un provider siempre está limitado a lo suyo (se ignora cualquier providerId que
+    // mande en la query, para que no pueda ver el costo/margen de otro provider). Un
+    // admin gestiona todo el catálogo, así que "mine" para admin es "todo".
+    const providerId = user.role === Role.PROVIDER ? user.userId : query.providerId;
+    return this.productsService.findMine({ ...query, providerId });
   }
 
   @Get()
@@ -33,6 +37,14 @@ export class ProductsController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);
+  }
+
+  @Get(':id/manage')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.PROVIDER)
+  findOneForManagement(@Param('id') id: string, @CurrentUser() user: ActingUser) {
+    return this.productsService.findOneForManagement(id, user);
   }
 
   @Post()

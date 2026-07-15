@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import CameraAltOutlinedIcon from '@mui/icons-material/CameraAltOutlined';
+import ViewInArOutlinedIcon from '@mui/icons-material/ViewInArOutlined';
 import type { Product } from '@/store/api/apiSlice';
 import { addItem } from '@/store/cartSlice';
 
@@ -131,6 +132,14 @@ export function ProductCard({ product }: { product: Product }) {
           onClick={() => router.push(`/probador/camara/${product.id}`)}
         >
           Probar con mi cámara
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<ViewInArOutlinedIcon />}
+          sx={{ mt: 1 }}
+          onClick={() => router.push(`/probador?producto=${product.id}`)}
+        >
+          Ver en 3D
         </Button>
       </CardContent>
     </Card>
