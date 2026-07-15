@@ -60,13 +60,22 @@ export function computeTorsoTransform(
   if (angleRad > Math.PI / 2) angleRad -= Math.PI;
   if (angleRad < -Math.PI / 2) angleRad += Math.PI;
 
+  // La ropa no se extiende para arriba y para abajo por igual desde un punto medio entre
+  // hombro y cadera (lo que hacía antes) — cuelga DESDE los hombros hacia abajo, con el
+  // cuello/collar un poco por encima de la línea de hombros. Ancla más realista:
+  // - ancho: bideltoides (hombro a hombro) + margen de caída de manga/corte (antes 1.9x,
+  //   demasiado ancho — colgaba más allá de los brazos).
+  // - alto: de collar a un poco debajo de la cadera (antes 1.65x del torso, se iba muy
+  //   por debajo de la cadera).
+  const width = shoulderWidthPx * 1.4;
+  const height = torsoHeightPx * 1.2;
+  const collarMarginPx = shoulderWidthPx * 0.15;
+
   return {
-    centerX: (shoulderMid.x + hipMid.x) / 2,
-    centerY: (shoulderMid.y + hipMid.y) / 2,
-    // La prenda visualmente cubre más que el ancho "hueso a hueso" de los hombros y baja
-    // un poco más allá de la cadera — factores aproximados para que se vea proporcionada.
-    width: shoulderWidthPx * 1.9,
-    height: torsoHeightPx * 1.65,
+    centerX: shoulderMid.x,
+    centerY: shoulderMid.y - collarMarginPx + height / 2,
+    width,
+    height,
     angleRad,
   };
 }
