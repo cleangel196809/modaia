@@ -208,7 +208,7 @@ export interface TrendItem {
 
 export interface TrendsSnapshot {
   generatedAt: string;
-  source: 'example-data';
+  source: 'example-data' | 'google-trends';
   disclaimer: string;
   colors: TrendItem[];
   styles: TrendItem[];
@@ -220,7 +220,7 @@ export interface GeneratedPost {
   caption: string;
   hashtags: string[];
   suggestedPlatforms: string[];
-  source: 'template-generator';
+  source: 'template-generator' | 'openai';
   disclaimer: string;
 }
 
@@ -235,7 +235,7 @@ export interface ChatbotProductSuggestion {
 export interface ChatbotReply {
   reply: string;
   products: ChatbotProductSuggestion[];
-  source: 'rule-based';
+  source: 'rule-based' | 'openai';
 }
 
 export interface Order {

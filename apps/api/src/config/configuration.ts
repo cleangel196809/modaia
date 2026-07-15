@@ -25,5 +25,13 @@ export default () => ({
     eventsSecret: process.env.WOMPI_EVENTS_SECRET || '',
     checkoutUrl: process.env.WOMPI_CHECKOUT_URL || 'https://checkout.wompi.co/p/',
   },
+  serpapi: {
+    apiKey: process.env.SERPAPI_KEY || '',
+    geo: process.env.SERPAPI_TRENDS_GEO || 'CO',
+  },
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY || '',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  },
   webAppUrl: process.env.WEB_APP_URL || 'http://localhost:3000',
 });

@@ -70,9 +70,9 @@ apps/api (NestJS)
   │                       no en este backend — ver más abajo)
   ├─ SizeAdvisorModule  → recomendación de talla a partir del perfil corporal
   ├─ DropshippingModule → insights reales sobre pedidos/inventario propios (sin mocks)
-  ├─ TrendsModule       → snapshot de tendencias — dataset de ejemplo, sin conexión a redes reales
-  ├─ MarketingModule    → generador de copy/hashtags por plantillas, sin LLM real
-  └─ ChatbotModule      → asistente por reglas/palabras clave, sin Azure OpenAI real
+  ├─ TrendsModule       → Google Trends real vía SerpApi si hay SERPAPI_KEY, si no dataset de ejemplo
+  ├─ MarketingModule    → copy/hashtags con OpenAI real si hay OPENAI_API_KEY, si no plantillas
+  └─ ChatbotModule      → respuesta con OpenAI real si hay OPENAI_API_KEY, si no reglas/palabras clave
 
 PostgreSQL (TypeORM, migraciones versionadas)
 Redis (reservado para cache de catálogo y sesiones — no usado aún por el core)
@@ -156,13 +156,13 @@ Este MVP valida el flujo UX y el pipeline técnico de render en cliente. La simu
 
 Ownership igual que en Products/Inventory/Orders: un `provider` autenticado solo ve `topSelling`/`restockAlerts` de sus propias prendas (filtro por `providerId` a nivel de query, no en el cliente); `categoryDemand` es admin-only.
 
-## Módulos Fase 3 con mock/plantillas/reglas declaradas (Tendencias, Marketing, Chatbot)
+## Módulos Fase 3 con integración real opcional (Tendencias, Marketing, Chatbot)
 
-Los tres necesitan una API externa con credenciales que no existen en este entorno — mismo problema que Wompi (pagos) y Azure AI Vision (medición corporal), documentado en sus respectivas secciones. La decisión en los tres casos fue la misma: **dejar el contrato de API, el frontend y el punto de reemplazo exacto ya armados**, en vez de omitir el módulo o simular una integración que no existe sin decirlo.
+Los tres dependen de una API externa de pago (SerpApi/OpenAI). En vez de dejarlos fijos en modo mock, cada uno intenta la llamada real cuando hay credenciales en el entorno (`SERPAPI_KEY`, `OPENAI_API_KEY` — ver `apps/api/.env.example`) y **cae automáticamente al mock/plantillas/reglas** si la variable no está configurada o la llamada falla (rate limit, timeout, créditos agotados). Así el proyecto funciona sin credenciales (modo demo) y mejora solo con configurarlas, sin tocar código ni romper nada si la API externa falla en producción.
 
-- **`TrendsService.getSnapshot()`** (`apps/api/src/modules/trends/`) devuelve un dataset fijo de colores/estilos/hashtags con `source: 'example-data'` y un `disclaimer` que la UI (`/admin/tendencias`) muestra tal cual, sin suavizarlo. Conectar Google Trends/Instagram Graph API real es reemplazar este único método.
-- **`MarketingService.generatePost()`** (`apps/api/src/modules/marketing/`) arma caption + hashtags con plantillas de texto rellenadas con datos reales del producto (nombre, material, categoría) — no hay modelo de lenguaje generando el texto. Respeta el mismo ownership que Products: un proveedor solo genera contenido para sus propias prendas. El botón "Generar contenido" vive en `/proveedor` y `/admin/productos`.
-- **`ChatbotService.reply()`** (`apps/api/src/modules/chatbot/`) hace coincidencia de palabras clave (talla, pago, envío, categorías de prenda) contra el catálogo real — no es Azure OpenAI. Es el único endpoint de todo el backend sin `JwtAuthGuard`: un visitante sin cuenta también necesita poder preguntar antes de registrarse, y no hay nada sensible en la respuesta (solo catálogo público + FAQ).
+- **`TrendsService.getSnapshot()`** (`apps/api/src/modules/trends/`): con `SERPAPI_KEY`, compara interés de búsqueda real en Google Trends (Colombia, últimos 7 días) para una lista curada de términos de estilo y de color (`STYLE_TERMS`/`COLOR_TERMS` en el mismo archivo — Google Trends no tiene categorías nativas de "colores/estilos de moda", así que se aproxima comparando términos representativos). Los hashtags combinan la marca propia con el color/estilo de mayor interés real, porque Google Trends no mide volumen de hashtags de redes sociales — eso seguiría siendo mock hasta integrar la Graph API de Instagram/TikTok (requiere revisión de app y verificación de negocio, no solo una API key). `source: 'google-trends'` vs `'example-data'` distingue cuál modo respondió; la UI (`/admin/tendencias`) muestra el `disclaimer` correspondiente tal cual.
+- **`MarketingService.generatePost()`** (`apps/api/src/modules/marketing/`): con `OPENAI_API_KEY`, genera el caption y los hashtags con un modelo real (`gpt-4o-mini` por defecto, configurable vía `OPENAI_MODEL`), usando los datos reales del producto (nombre, material, categoría, colores) como único contexto — el modelo no inventa atributos del producto. Respeta el mismo ownership que Products: un proveedor solo genera contenido para sus propias prendas. `source: 'openai'` vs `'template-generator'` distingue el origen.
+- **`ChatbotService.reply()`** (`apps/api/src/modules/chatbot/`): con `OPENAI_API_KEY`, el texto de la respuesta lo redacta el modelo, pero **la búsqueda de productos sigue siendo siempre una consulta real a la base de datos** (`findMatchingProducts()`) — nunca la inventa el modelo, justamente para evitar que alucine SKUs o precios inexistentes. El prompt del sistema restringe al modelo a solo mencionar prendas presentes en ese resultado real. Sigue siendo el único endpoint de todo el backend sin `JwtAuthGuard` (un visitante sin cuenta necesita poder preguntar antes de registrarse).
 
 ## 5. Seguridad implementada vs. pendiente
 
