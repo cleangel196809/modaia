@@ -1,0 +1,539 @@
+<title>ModaIA Closet — Isologo</title>
+<style>
+  :root{
+    --carbon:#111111;
+    --carbon-panel:#161410;
+    --ivory:#F8F6F2;
+    --ivory-panel:#F1ECE1;
+    --gold:#D4AF37;
+    --gold-dim:#9c8434;
+    --line-dark:#3a3220;
+    --line-light:#ddd2b8;
+    --ink:#F8F6F2;
+    --ink-soft:#a89f8c;
+    --bg:var(--carbon);
+    --panel:var(--carbon-panel);
+    --panel-alt:#1c1812;
+    --text:var(--ivory);
+    --text-soft:var(--ink-soft);
+    --rule:var(--line-dark);
+    --mark-fill:var(--gold);
+    --mark-cut:var(--carbon);
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:var(--ivory);
+      --panel:var(--ivory-panel);
+      --panel-alt:#ece5d4;
+      --text:var(--carbon);
+      --text-soft:#6b6455;
+      --rule:var(--line-light);
+      --mark-fill:var(--carbon);
+      --mark-cut:var(--gold);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:var(--carbon);
+    --panel:var(--carbon-panel);
+    --panel-alt:#1c1812;
+    --text:var(--ivory);
+    --text-soft:var(--ink-soft);
+    --rule:var(--line-dark);
+    --mark-fill:var(--gold);
+    --mark-cut:var(--carbon);
+  }
+  :root[data-theme="light"]{
+    --bg:var(--ivory);
+    --panel:var(--ivory-panel);
+    --panel-alt:#ece5d4;
+    --text:var(--carbon);
+    --text-soft:#6b6455;
+    --rule:var(--line-light);
+    --mark-fill:var(--carbon);
+    --mark-cut:var(--gold);
+  }
+
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .book{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    line-height:1.5;
+    overflow-x:hidden;
+  }
+  .display{
+    font-family:'Century Gothic','Futura PT','Avenir Next','Segoe UI','Helvetica Neue',Arial,sans-serif;
+    font-weight:300;
+    text-transform:uppercase;
+    letter-spacing:0.18em;
+  }
+  .eyebrow{
+    font-family:Georgia,'Iowan Old Style','Palatino Linotype','Times New Roman',serif;
+    font-style:italic;
+    font-size:12.5px;
+    letter-spacing:0.04em;
+    color:var(--gold);
+    text-transform:none;
+  }
+  .plate-title{
+    font-size:clamp(20px,2.6vw,28px);
+    margin:2px 0 14px;
+    letter-spacing:0.14em;
+  }
+  .plate-desc{
+    max-width:62ch;
+    color:var(--text-soft);
+    font-size:14.5px;
+    margin:0 0 36px;
+  }
+  .plate{
+    padding:64px clamp(20px,6vw,72px);
+    border-bottom:1px solid var(--rule);
+  }
+  .plate:last-child{border-bottom:none;}
+  .plate.alt{background:var(--panel);}
+
+  /* ---- cover ---- */
+  .cover{
+    position:relative;
+    padding:88px clamp(20px,6vw,72px) 56px;
+    text-align:center;
+    overflow:hidden;
+  }
+  .cover::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      repeating-linear-gradient(0deg, var(--rule) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(90deg, var(--rule) 0 1px, transparent 1px 64px);
+    opacity:0.35;
+    mask-image:radial-gradient(circle at 50% 30%, black, transparent 70%);
+  }
+  .cover-inner{position:relative;}
+  .mark{
+    width:clamp(150px,22vw,240px);
+    height:auto;
+    display:block;
+    margin:0 auto 28px;
+    animation:rise 900ms ease-out both;
+  }
+  @keyframes rise{
+    from{opacity:0; transform:translateY(10px) scale(0.96);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .mark{animation:none;}
+  }
+  .wordmark{
+    font-size:clamp(28px,5vw,52px);
+    line-height:1.05;
+  }
+  .wordmark .ia{color:var(--gold); font-weight:600;}
+  .wordmark small{
+    display:block;
+    font-size:0.34em;
+    letter-spacing:0.5em;
+    margin-top:10px;
+    color:var(--text-soft);
+    font-weight:300;
+  }
+  .cover-meta{
+    margin-top:40px;
+    display:flex;
+    justify-content:center;
+    gap:28px;
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-soft);
+  }
+
+  /* ---- lockup stage ---- */
+  .stage{
+    border:1px solid var(--rule);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:56px 24px;
+    min-height:220px;
+  }
+  .stage.horizontal-stage .lockup{
+    display:flex;
+    align-items:center;
+    gap:22px;
+  }
+  .stage .mark{margin:0; width:88px;}
+  .stage.vertical-stage .lockup{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+  }
+  .lockup .wordmark{font-size:clamp(20px,3vw,30px); text-align:left;}
+  .vertical-stage .wordmark{text-align:center;}
+  .lockup .wordmark small{letter-spacing:0.4em; font-size:0.36em;}
+
+  /* ---- icon triptych ---- */
+  .triptych{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1px;
+    background:var(--rule);
+    border:1px solid var(--rule);
+  }
+  .swatch-cell{
+    padding:48px 20px 24px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:18px;
+  }
+  .swatch-cell.on-carbon{background:var(--carbon); --mark-fill:var(--gold); --mark-cut:var(--carbon); color:var(--ivory);}
+  .swatch-cell.on-ivory{background:var(--ivory); --mark-fill:var(--carbon); --mark-cut:var(--gold); color:var(--carbon);}
+  .swatch-cell.on-gold{background:var(--gold); --mark-fill:var(--carbon); --mark-cut:var(--ivory); color:var(--carbon);}
+  .swatch-cell .mark{width:96px; margin:0;}
+  .swatch-label{font-size:11px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.75;}
+
+  /* ---- construction ---- */
+  .construction-grid{
+    display:grid;
+    grid-template-columns:1.1fr 1fr;
+    gap:40px;
+    align-items:center;
+  }
+  .clear-stage{
+    border:1px solid var(--rule);
+    padding:40px;
+    display:flex;
+    justify-content:center;
+  }
+  .clear-box{
+    position:relative;
+    padding:34px;
+    border:1px dashed var(--gold-dim);
+  }
+  .clear-box .mark{width:110px; margin:0;}
+  .min-sizes{display:flex; align-items:flex-end; gap:28px; margin-top:8px;}
+  .min-sizes figure{margin:0; text-align:center;}
+  .min-sizes .mark{margin:0 auto 8px;}
+  .min-sizes figcaption{font-size:10.5px; color:var(--text-soft); letter-spacing:0.06em;}
+  .spec-list{list-style:none; margin:0; padding:0; font-size:13.5px;}
+  .spec-list li{
+    display:flex; justify-content:space-between; gap:16px;
+    padding:10px 0; border-bottom:1px solid var(--rule);
+  }
+  .spec-list li span:first-child{color:var(--text-soft);}
+  .spec-list li span:last-child{font-variant-numeric:tabular-nums;}
+
+  /* ---- palette ---- */
+  .palette{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:1px;
+    background:var(--rule);
+    border:1px solid var(--rule);
+  }
+  .chip{background:var(--bg); padding:0;}
+  .chip .fill{height:120px;}
+  .chip .info{padding:16px 18px;}
+  .chip .name{font-size:14px; letter-spacing:0.04em; margin:0 0 2px;}
+  .chip .role{font-size:12px; color:var(--text-soft); margin:0 0 10px;}
+  .chip .hex{font-size:12px; font-variant-numeric:tabular-nums; letter-spacing:0.05em; color:var(--text-soft);}
+
+  /* ---- typography plate ---- */
+  .type-demo{border:1px solid var(--rule); padding:44px clamp(20px,4vw,48px);}
+  .type-demo .big{font-size:clamp(30px,6vw,58px); margin-bottom:26px;}
+  .type-row{display:flex; justify-content:space-between; align-items:baseline; padding:14px 0; border-top:1px solid var(--rule);}
+  .type-row:first-of-type{border-top:none;}
+  .type-row .label{font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-soft); width:160px; flex:none;}
+  .type-row .sample{font-family:Georgia,'Iowan Old Style',serif; font-style:italic; font-size:15px; color:var(--text-soft);}
+
+  /* ---- applications ---- */
+  .apps{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:28px;
+  }
+  .app-card{
+    background:var(--panel);
+    border:1px solid var(--rule);
+    padding:30px 20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    text-align:center;
+  }
+  .app-card .cap{font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-soft);}
+
+  .app-icon{
+    width:96px; height:96px;
+    border-radius:22px;
+    background:var(--carbon);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 10px 24px -12px rgba(0,0,0,0.55);
+  }
+  .app-icon .mark{width:52px; margin:0; --mark-fill:var(--gold); --mark-cut:var(--carbon);}
+
+  .avatar{
+    width:96px; height:96px;
+    border-radius:50%;
+    background:var(--carbon);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 10px 24px -12px rgba(0,0,0,0.55);
+  }
+  .avatar .mark{width:50px; margin:0; --mark-fill:var(--gold); --mark-cut:var(--carbon);}
+
+  .tag{
+    width:96px;
+    background:var(--ivory);
+    color:var(--carbon);
+    padding:18px 10px 14px;
+    box-shadow:0 10px 24px -12px rgba(0,0,0,0.4);
+    position:relative;
+    border:1px solid var(--line-light);
+  }
+  .tag::before{
+    content:"";
+    position:absolute; top:8px; left:50%; transform:translateX(-50%);
+    width:8px; height:8px; border-radius:50%;
+    background:var(--ivory); border:1px solid var(--carbon);
+  }
+  .tag .mark{width:36px; margin:10px auto 8px; --mark-fill:var(--carbon); --mark-cut:var(--gold);}
+  .tag .tag-word{font-size:8px; letter-spacing:0.14em;}
+
+  .box{
+    width:120px; height:96px;
+    background:var(--carbon);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    box-shadow:0 10px 24px -12px rgba(0,0,0,0.55);
+  }
+  .box .mark{width:38px; margin:0; --mark-fill:var(--gold); --mark-cut:var(--carbon);}
+  .box .box-word{font-size:8px; letter-spacing:0.2em; color:var(--ivory);}
+
+  footer.plate{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--text-soft);
+    padding:28px clamp(20px,6vw,72px);
+  }
+
+  @media (max-width:640px){
+    .construction-grid{grid-template-columns:1fr;}
+    .triptych{grid-template-columns:1fr;}
+    .cover-meta{flex-direction:column; gap:8px;}
+  }
+</style>
+
+<div class="book">
+  <svg width="0" height="0" style="position:absolute">
+    <symbol id="modaia-mark" viewBox="-90 -112 180 206">
+      <circle cx="0" cy="-98" r="11" fill="none" stroke="var(--mark-fill)" stroke-width="7"/>
+      <rect x="-4" y="-89" width="8" height="24" rx="4" fill="var(--mark-fill)"/>
+      <path d="M0,-64 C-23,-64 -62,-48 -64,-32 C-66,-18 -42,-6 -38,20 C-34,46 -66,60 -78,75 C-81,79 -79,82 -74,82 L74,82 C79,82 81,79 78,75 C66,60 34,46 38,20 C42,-6 66,-18 64,-32 C62,-48 23,-64 0,-64 Z" fill="var(--mark-fill)"/>
+      <g stroke="var(--mark-cut)" stroke-width="3.4" stroke-linecap="round" fill="none">
+        <line x1="-25" y1="-10" x2="25" y2="-10"/>
+        <line x1="0" y1="-30" x2="0" y2="10"/>
+        <line x1="0" y1="20" x2="20" y2="35"/>
+      </g>
+      <circle cx="0" cy="-10" r="4.2" fill="var(--mark-cut)"/>
+      <circle cx="-25" cy="-10" r="3" fill="var(--mark-cut)"/>
+      <circle cx="25" cy="-10" r="3" fill="var(--mark-cut)"/>
+      <circle cx="20" cy="35" r="3" fill="var(--mark-cut)"/>
+    </symbol>
+  </svg>
+
+  <section class="plate cover">
+    <div class="cover-inner">
+      <p class="eyebrow">Sistema de identidad de marca</p>
+      <svg class="mark" viewBox="-90 -112 180 206" role="img" aria-label="Símbolo ModaIA Closet"><use href="#modaia-mark"></use></svg>
+      <h1 class="wordmark display">MODA<span class="ia">IA</span><small>Closet</small></h1>
+      <div class="cover-meta">
+        <span>Isologo</span>
+        <span>Moda · IA · Personalización</span>
+        <span>Ficha 001</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="plate">
+    <p class="eyebrow">Plate 01</p>
+    <h2 class="plate-title display">El símbolo</h2>
+    <p class="plate-desc">Una sola forma cierra tres ideas: el gancho superior es una percha; el cuerpo es la silueta de un vestido entallado —y, en abstracto, de una figura femenina—; y el trazo grabado en negativo, con sus nodos, es un circuito. Ninguno de los tres elementos se dibuja por separado: se leen todos en el mismo contorno.</p>
+    <div class="triptych">
+      <div class="swatch-cell on-carbon">
+        <svg class="mark" viewBox="-90 -112 180 206" role="img" aria-label="Símbolo en dorado sobre carbón"><use href="#modaia-mark"></use></svg>
+        <span class="swatch-label">Dorado sobre carbón</span>
+      </div>
+      <div class="swatch-cell on-ivory">
+        <svg class="mark" viewBox="-90 -112 180 206" role="img" aria-label="Símbolo en carbón sobre marfil"><use href="#modaia-mark"></use></svg>
+        <span class="swatch-label">Carbón sobre marfil</span>
+      </div>
+      <div class="swatch-cell on-gold">
+        <svg class="mark" viewBox="-90 -112 180 206" role="img" aria-label="Símbolo en carbón sobre dorado, versión packaging"><use href="#modaia-mark"></use></svg>
+        <span class="swatch-label">Sello — packaging</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="plate alt">
+    <p class="eyebrow">Plate 02</p>
+    <h2 class="plate-title display">Versión horizontal</h2>
+    <p class="plate-desc">Para cabeceras de app, barra de navegación del ecommerce y encabezados de redes sociales, donde el espacio es ancho y bajo.</p>
+    <div class="stage horizontal-stage">
+      <div class="lockup">
+        <svg class="mark" viewBox="-90 -112 180 206" role="img" aria-label="Símbolo ModaIA Closet"><use href="#modaia-mark"></use></svg>
+        <h3 class="wordmark display">MODA<span class="ia">IA</span><small>Closet</small></h3>
+      </div>
+    </div>
+  </section>
+
+  <section class="plate">
+    <p class="eyebrow">Plate 03</p>
+    <h2 class="plate-title display">Versión vertical</h2>
+    <p class="plate-desc">Para splash de la app, empaques y perfiles sociales cuadrados: el símbolo ancla arriba, el nombre respira debajo.</p>
+    <div class="stage vertical-stage">
+      <div class="lockup">
+        <svg class="mark" viewBox="-90 -112 180 206" role="img" aria-label="Símbolo ModaIA Closet"><use href="#modaia-mark"></use></svg>
+        <h3 class="wordmark display">MODA<span class="ia">IA</span><small>Closet</small></h3>
+      </div>
+    </div>
+  </section>
+
+  <section class="plate alt">
+    <p class="eyebrow">Plate 04</p>
+    <h2 class="plate-title display">Color</h2>
+    <p class="plate-desc">Tres valores, sin gradientes ni variaciones tonales: el contraste entre el carbón y el dorado es el que hace el trabajo de lujo.</p>
+    <div class="palette">
+      <div class="chip">
+        <div class="fill" style="background:#111111"></div>
+        <div class="info">
+          <p class="name">Negro carbón</p>
+          <p class="role">Fondo principal, texto sobre marfil</p>
+          <p class="hex">#111111</p>
+        </div>
+      </div>
+      <div class="chip">
+        <div class="fill" style="background:#D4AF37"></div>
+        <div class="info">
+          <p class="name">Dorado champagne</p>
+          <p class="role">Acento único — símbolo, "IA", detalles</p>
+          <p class="hex">#D4AF37</p>
+        </div>
+      </div>
+      <div class="chip">
+        <div class="fill" style="background:#F8F6F2"></div>
+        <div class="info">
+          <p class="name">Blanco marfil</p>
+          <p class="role">Fondo alterno, texto sobre carbón</p>
+          <p class="hex">#F8F6F2</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="plate">
+    <p class="eyebrow">Plate 05</p>
+    <h2 class="plate-title display">Tipografía</h2>
+    <p class="plate-desc">Sans geométrica, fina, en mayúsculas con tracking amplio. Dentro del nombre, "IA" se separa en peso y color — es el único énfasis que se permite la marca.</p>
+    <div class="type-demo">
+      <p class="big display">MODA<span class="ia" style="color:var(--gold); font-weight:600;">IA</span></p>
+      <div class="type-row">
+        <span class="label">Familia</span>
+        <span class="sample">Century Gothic / Futura PT / Avenir Next — sans geométrica</span>
+      </div>
+      <div class="type-row">
+        <span class="label">Peso — Moda</span>
+        <span class="sample">Light 300, mayúsculas</span>
+      </div>
+      <div class="type-row">
+        <span class="label">Peso — IA</span>
+        <span class="sample">Semibold 600, color dorado champagne</span>
+      </div>
+      <div class="type-row">
+        <span class="label">Tracking</span>
+        <span class="sample">0.18em en el nombre, 0.4–0.5em en "Closet"</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="plate alt">
+    <p class="eyebrow">Plate 06</p>
+    <h2 class="plate-title display">Construcción</h2>
+    <p class="plate-desc">El área de resguardo equivale al ancho del gancho superior repetido en los cuatro lados. Por debajo de 24&nbsp;px se retiran los trazos internos del circuito para no perder nitidez.</p>
+    <div class="construction-grid">
+      <div class="clear-stage">
+        <div class="clear-box">
+          <svg class="mark" viewBox="-90 -112 180 206" role="img" aria-label="Símbolo con área de resguardo"><use href="#modaia-mark"></use></svg>
+        </div>
+      </div>
+      <ul class="spec-list">
+        <li><span>Resguardo mínimo</span><span>1× ancho del gancho</span></li>
+        <li><span>Tamaño mínimo — pantalla</span><span>24 px</span></li>
+        <li><span>Tamaño mínimo — impreso</span><span>8 mm</span></li>
+        <li><span>Favicon / etiqueta</span><span>símbolo sin circuito interno</span></li>
+        <li><span>Proporción alto:ancho</span><span>1 : 0.87</span></li>
+      </ul>
+    </div>
+    <div class="min-sizes">
+      <figure>
+        <svg class="mark" viewBox="-90 -112 180 206" style="width:64px" role="img" aria-label="Tamaño 64 píxeles"><use href="#modaia-mark"></use></svg>
+        <figcaption>64 px</figcaption>
+      </figure>
+      <figure>
+        <svg class="mark" viewBox="-90 -112 180 206" style="width:40px" role="img" aria-label="Tamaño 40 píxeles"><use href="#modaia-mark"></use></svg>
+        <figcaption>40 px</figcaption>
+      </figure>
+      <figure>
+        <svg class="mark" viewBox="-90 -112 180 206" style="width:24px" role="img" aria-label="Tamaño 24 píxeles"><use href="#modaia-mark"></use></svg>
+        <figcaption>24 px</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="plate">
+    <p class="eyebrow">Plate 07</p>
+    <h2 class="plate-title display">Aplicaciones</h2>
+    <p class="plate-desc">El mismo símbolo, sin redibujar, sobre los cuatro soportes que la marca necesita desde el día uno.</p>
+    <div class="apps">
+      <div class="app-card">
+        <div class="app-icon">
+          <svg class="mark" viewBox="-90 -112 180 206" role="img" aria-label="Ícono de aplicación móvil"><use href="#modaia-mark"></use></svg>
+        </div>
+        <span class="cap">Ícono de app</span>
+      </div>
+      <div class="app-card">
+        <div class="avatar">
+          <svg class="mark" viewBox="-90 -112 180 206" role="img" aria-label="Avatar de redes sociales"><use href="#modaia-mark"></use></svg>
+        </div>
+        <span class="cap">Avatar social</span>
+      </div>
+      <div class="app-card">
+        <div class="tag">
+          <svg class="mark" viewBox="-90 -112 180 206" role="img" aria-label="Etiqueta de prenda"><use href="#modaia-mark"></use></svg>
+          <p class="tag-word display">MODAIA</p>
+        </div>
+        <span class="cap">Etiqueta de prenda</span>
+      </div>
+      <div class="app-card">
+        <div class="box">
+          <svg class="mark" viewBox="-90 -112 180 206" role="img" aria-label="Empaque de producto"><use href="#modaia-mark"></use></svg>
+          <p class="box-word display">MODAIA CLOSET</p>
+        </div>
+        <span class="cap">Packaging</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="plate">
+    <span>ModaIA Closet — Isologo</span>
+    <span>Carbón #111111 · Champagne #D4AF37 · Marfil #F8F6F2</span>
+  </footer>
+</div>

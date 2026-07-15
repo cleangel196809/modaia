@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "eastus"
+    },
+    "environment": {
+      "value": "prod"
+    },
+    "projectPrefix": {
+      "value": "modaia"
+    },
+    "postgresAdminLogin": {
+      "value": "modaiaadmin"
+    },
+    "postgresAdminPassword": {
+      "value": "<set-strong-password-here>"
+    },
+    "nodeVersion": {
+      "value": "20-lts"
+    }
+  }
+}

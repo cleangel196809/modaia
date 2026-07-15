@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: modaia
+      POSTGRES_PASSWORD: modaia_dev_password
+      POSTGRES_DB: modaia_closet
+    ports:
+      - '5432:5432'
+    volumes:
+      - modaia_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U modaia']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+
+  api:
+    build:
+      context: ./apps/api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # 'development' a propósito: este docker-compose es para levantar el stack localmente
+      # (no es el despliegue real de producción, que sería Azure App Service vía CI/CD) y
+      # NODE_ENV=production deshabilitaría /payments/dev/simulate, la única forma de probar
+      # el checkout completo sin una cuenta real de Wompi. Ver docs/ARCHITECTURE.md.
+      NODE_ENV: development
+      PORT: 3001
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: modaia
+      DB_PASSWORD: modaia_dev_password
+      DB_DATABASE: modaia_closet
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_ACCESS_SECRET: change_me_access_secret
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_SECRET: change_me_refresh_secret
+      JWT_REFRESH_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:3000
+      WEB_APP_URL: http://localhost:3000
+    ports:
+      - '3001:3001'
+
+  web:
+    build:
+      context: ./apps/web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+    ports:
+      - '3000:3000'
+
+volumes:
+  modaia_db_data:

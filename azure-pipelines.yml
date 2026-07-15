@@ -1,0 +1,66 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  nodeVersion: '20.x'
+
+stages:
+  - stage: Build
+    jobs:
+      - job: BuildApi
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - script: |
+              cd apps/api
+              npm ci
+              npm run build
+            displayName: Build API
+
+      - job: BuildWeb
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - script: |
+              cd apps/web
+              npm ci
+              npm run build
+            displayName: Build Web
+
+  - stage: Deploy
+    dependsOn: Build
+    jobs:
+      - deployment: DeployApi
+        environment: production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: '$(azureServiceConnection)'
+                    appType: 'webAppLinux'
+                    appName: '$(apiAppName)'
+                    package: 'apps/api'
+
+      - deployment: DeployWeb
+        environment: production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: '$(azureServiceConnection)'
+                    appType: 'webAppLinux'
+                    appName: '$(webAppName)'
+                    package: 'apps/web'

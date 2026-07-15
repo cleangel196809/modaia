@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800">
+  <defs>
+    <linearGradient id="bgSet" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F1ECE1"/>
+      <stop offset="1" stop-color="#e7dcc4"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#bgSet)"/>
+  <g transform="translate(220,300)">
+    <path d="M-70,-160 L-15,-190 L15,-190 L70,-160 L85,-70 L45,-55 L40,-190 L-40,-190 L-45,-55 L-85,-70 Z" fill="#111111"/>
+    <path d="M-45,-55 L-55,120 Q0,140 55,120 L45,-55 Q0,-35 -45,-55 Z" fill="#111111"/>
+  </g>
+  <g transform="translate(380,470)">
+    <path d="M-60,-40 L60,-40 L75,140 Q0,170 -75,140 Z" fill="#D4AF37"/>
+    <line x1="0" y1="-40" x2="0" y2="150" stroke="#111111" stroke-width="3" opacity="0.4"/>
+  </g>
+  <text x="300" y="740" text-anchor="middle" font-family="Century Gothic, Futura PT, Avenir Next, Arial, sans-serif" font-size="26" letter-spacing="6" fill="#6B6455">CONJUNTO</text>
+</svg>
