@@ -14,6 +14,8 @@ const NAV_ITEMS = [
   { href: '/admin/inventario', label: 'Inventario' },
   { href: '/admin/proveedores', label: 'Proveedores', adminOnly: true },
   { href: '/admin/pedidos', label: 'Pedidos', adminOnly: true },
+  { href: '/admin/dropshipping', label: 'Dropshipping' },
+  { href: '/admin/tendencias', label: 'Tendencias', adminOnly: true },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

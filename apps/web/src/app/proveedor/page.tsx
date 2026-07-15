@@ -18,9 +18,12 @@ import {
   TableCell,
   TableBody,
   Chip,
+  IconButton,
 } from '@mui/material';
+import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import { Navbar } from '@/components/Navbar';
 import { ProductFormDialog } from '@/components/ProductFormDialog';
+import { MarketingGeneratorDialog } from '@/components/MarketingGeneratorDialog';
 import type { RootState } from '@/store/store';
 import { useGetMyProviderProfileQuery, useGetMyProductsQuery, useGetProviderOrderItemsQuery } from '@/store/api/apiSlice';
 
@@ -205,6 +208,7 @@ function MyOrderItems() {
 
 function MyProducts() {
   const { data, isLoading } = useGetMyProductsQuery({ includeInactive: true, limit: 50 });
+  const [marketingTarget, setMarketingTarget] = useState<{ id: string; name: string } | null>(null);
 
   if (isLoading) return <CircularProgress />;
 
@@ -213,42 +217,63 @@ function MyProducts() {
   }
 
   return (
-    <Table size="small">
-      <TableHead>
-        <TableRow>
-          <TableCell>SKU</TableCell>
-          <TableCell>Nombre</TableCell>
-          <TableCell>Categoría</TableCell>
-          <TableCell align="right">Precio</TableCell>
-          <TableCell align="right">Stock</TableCell>
-          <TableCell align="right">Estado</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {data.items.map((product) => (
-          <TableRow key={product.id} hover>
-            <TableCell>{product.sku}</TableCell>
-            <TableCell>
-              <Link href={`/admin/productos/${product.id}`}>{product.name}</Link>
-            </TableCell>
-            <TableCell>{product.category?.name}</TableCell>
-            <TableCell align="right">{currencyFormatter.format(product.price)}</TableCell>
-            <TableCell align="right">
-              {product.stock}
-              {product.stock <= product.lowStockThreshold && (
-                <Chip label="bajo" color="warning" size="small" sx={{ ml: 1 }} />
-              )}
-            </TableCell>
-            <TableCell align="right">
-              {product.isActive ? (
-                <Chip label="activa" color="success" size="small" />
-              ) : (
-                <Chip label="desactivada" size="small" />
-              )}
-            </TableCell>
+    <>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>SKU</TableCell>
+            <TableCell>Nombre</TableCell>
+            <TableCell>Categoría</TableCell>
+            <TableCell align="right">Precio</TableCell>
+            <TableCell align="right">Stock</TableCell>
+            <TableCell align="right">Estado</TableCell>
+            <TableCell align="right">Marketing</TableCell>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHead>
+        <TableBody>
+          {data.items.map((product) => (
+            <TableRow key={product.id} hover>
+              <TableCell>{product.sku}</TableCell>
+              <TableCell>
+                <Link href={`/admin/productos/${product.id}`}>{product.name}</Link>
+              </TableCell>
+              <TableCell>{product.category?.name}</TableCell>
+              <TableCell align="right">{currencyFormatter.format(product.price)}</TableCell>
+              <TableCell align="right">
+                {product.stock}
+                {product.stock <= product.lowStockThreshold && (
+                  <Chip label="bajo" color="warning" size="small" sx={{ ml: 1 }} />
+                )}
+              </TableCell>
+              <TableCell align="right">
+                {product.isActive ? (
+                  <Chip label="activa" color="success" size="small" />
+                ) : (
+                  <Chip label="desactivada" size="small" />
+                )}
+              </TableCell>
+              <TableCell align="right">
+                <IconButton
+                  size="small"
+                  title="Generar contenido para redes"
+                  onClick={() => setMarketingTarget({ id: product.id, name: product.name })}
+                >
+                  <CampaignOutlinedIcon fontSize="small" />
+                </IconButton>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {marketingTarget && (
+        <MarketingGeneratorDialog
+          open={!!marketingTarget}
+          onClose={() => setMarketingTarget(null)}
+          productId={marketingTarget.id}
+          productName={marketingTarget.name}
+        />
+      )}
+    </>
   );
 }

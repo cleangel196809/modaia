@@ -16,8 +16,10 @@ import {
   TextField,
 } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import { useDeleteProductMutation, useGetProductsQuery } from '@/store/api/apiSlice';
 import { ProductFormDialog } from '@/components/ProductFormDialog';
+import { MarketingGeneratorDialog } from '@/components/MarketingGeneratorDialog';
 
 const currencyFormatter = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -30,6 +32,7 @@ export default function AdminProductsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { data: products, isLoading } = useGetProductsQuery({ search: search || undefined, limit: 50 });
   const [deleteProduct] = useDeleteProductMutation();
+  const [marketingTarget, setMarketingTarget] = useState<{ id: string; name: string } | null>(null);
 
   return (
     <Box>
@@ -80,6 +83,13 @@ export default function AdminProductsPage() {
                   )}
                 </TableCell>
                 <TableCell align="right">
+                  <IconButton
+                    size="small"
+                    title="Generar contenido para redes"
+                    onClick={() => setMarketingTarget({ id: product.id, name: product.name })}
+                  >
+                    <CampaignOutlinedIcon fontSize="small" />
+                  </IconButton>
                   <IconButton size="small" onClick={() => deleteProduct(product.id)} title="Desactivar">
                     <DeleteOutlineIcon fontSize="small" />
                   </IconButton>
@@ -91,6 +101,15 @@ export default function AdminProductsPage() {
       )}
 
       <ProductFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
+
+      {marketingTarget && (
+        <MarketingGeneratorDialog
+          open={!!marketingTarget}
+          onClose={() => setMarketingTarget(null)}
+          productId={marketingTarget.id}
+          productName={marketingTarget.name}
+        />
+      )}
     </Box>
   );
 }

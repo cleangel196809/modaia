@@ -16,10 +16,12 @@ Auth (JWT/roles), Catálogo, Inventario. Ver [ARCHITECTURE.md](ARCHITECTURE.md).
 6. **Probador virtual 3D/AR** (✅ MVP funcional en este repo) — escena 3D con Three.js en `/probador`, vistas frontal/lateral/posterior, tipos de prenda base (blusa/chaqueta/vestido), simulación de movimiento y validación de soporte WebXR. Integración avanzada (avatar 3D personal, simulación física de tela, captura de video) queda como siguiente iteración.
 
 ## Fase 3 — Crecimiento e inteligencia de negocio
-7. **Dropshipping inteligente** — motor de detección de tendencias y sugerencia de nuevos productos.
-8. **IA de tendencias** — análisis de Instagram/Pinterest/TikTok/Google Trends.
-9. **Marketing automatizado** — generación de posts/reels/copys/hashtags, integraciones con Meta/WhatsApp Business/Telegram/Pinterest.
-10. **Chatbot IA (Azure OpenAI)** — recomendación de prendas, dudas, ayuda con tallas y pagos.
+7. **Dropshipping inteligente** (✅ completado en este repo, 100% real) — `GET /dropshipping/top-selling|restock-alerts|category-demand` analiza pedidos pagados e inventario reales (no hay datos de ejemplo) para detectar productos más vendidos, alertar reposición antes de agotarse (cruzando velocidad de venta con `leadTimeDays`), y rankear categorías por demanda. UI en `/admin/dropshipping`, con vista propia para proveedores.
+8. **IA de tendencias** (✅ MVP en este repo, **datos de ejemplo**) — `GET /trends` devuelve un dataset fijo de colores/estilos/hashtags con un disclaimer explícito; no hay cuenta de Instagram/TikTok/Pinterest/Google Trends conectada. UI en `/admin/tendencias`.
+9. **Marketing automatizado** (✅ MVP en este repo, **plantillas, no IA generativa**) — `POST /marketing/generate-post` arma caption + hashtags + plataformas sugeridas con plantillas de texto sobre los datos reales del producto (no hay Azure OpenAI conectado). Botón "Generar contenido" en `/proveedor` y `/admin/productos`.
+10. **Chatbot IA** (✅ MVP en este repo, **basado en reglas, no Azure OpenAI**) — `POST /chatbot/message` responde por coincidencia de palabras clave (tallas, pagos, envíos, búsqueda de prendas en el catálogo real). Widget flotante en todo el sitio, incluso para visitantes sin sesión.
+
+*Los tres módulos marcados "mock"/"plantillas"/"reglas" tienen su único punto de reemplazo documentado en el código (`TrendsService.getSnapshot()`, `MarketingService.generatePost()`, `ChatbotService.reply()`) — conectar Google Trends/Instagram, Azure OpenAI, o ambos, es cambiar ese método, no rediseñar el módulo.*
 
 ## Fase 4 — Retención y ejecutivo
 11. **Experiencia premium** — wishlist, puntos, cashback, cupones, referidos, suscripción VIP.

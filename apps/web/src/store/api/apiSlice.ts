@@ -2,7 +2,11 @@ import { BaseQueryFn, createApi, FetchArgs, fetchBaseQuery, FetchBaseQueryError 
 import type { RootState } from '../store';
 import { logout, setCredentials } from '../authSlice';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Relativa por defecto: el navegador siempre llama al mismo host/puerto desde el que
+// cargó la página (funciona igual en localhost, en la IP de la LAN desde el celular, o
+// detrás de un dominio real más adelante). next.config.js reescribe /api/* hacia el
+// backend. NEXT_PUBLIC_API_URL sigue disponible para forzar una URL absoluta si hace falta.
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_URL,
@@ -169,6 +173,69 @@ export interface SizeRecommendation {
     sku: string;
     name: string;
   };
+}
+
+export interface TopSellingProduct {
+  productId: string;
+  sku: string;
+  name: string;
+  unitsSold: number;
+  revenue: number;
+}
+
+export interface RestockAlert {
+  productId: string;
+  sku: string;
+  name: string;
+  stock: number;
+  dailyVelocity: number;
+  daysOfStockLeft: number;
+  leadTimeDays: number;
+}
+
+export interface CategoryDemand {
+  categoryId: string;
+  categoryName: string;
+  activeProducts: number;
+  unitsSold: number;
+  demandPerProduct: number;
+}
+
+export interface TrendItem {
+  label: string;
+  score: number;
+}
+
+export interface TrendsSnapshot {
+  generatedAt: string;
+  source: 'example-data';
+  disclaimer: string;
+  colors: TrendItem[];
+  styles: TrendItem[];
+  hashtags: TrendItem[];
+}
+
+export interface GeneratedPost {
+  productId: string;
+  caption: string;
+  hashtags: string[];
+  suggestedPlatforms: string[];
+  source: 'template-generator';
+  disclaimer: string;
+}
+
+export interface ChatbotProductSuggestion {
+  id: string;
+  sku: string;
+  name: string;
+  price: number;
+  images: string[];
+}
+
+export interface ChatbotReply {
+  reply: string;
+  products: ChatbotProductSuggestion[];
+  source: 'rule-based';
 }
 
 export interface Order {
@@ -350,6 +417,26 @@ export const apiSlice = createApi({
     >({
       query: (body) => ({ url: '/size-advisor/recommend', method: 'POST', body }),
     }),
+
+    getTopSelling: builder.query<TopSellingProduct[], { days?: number; limit?: number } | void>({
+      query: (params) => ({ url: '/dropshipping/top-selling', params: params ?? {} }),
+    }),
+    getRestockAlerts: builder.query<RestockAlert[], { days?: number } | void>({
+      query: (params) => ({ url: '/dropshipping/restock-alerts', params: params ?? {} }),
+    }),
+    getCategoryDemand: builder.query<CategoryDemand[], { days?: number } | void>({
+      query: (params) => ({ url: '/dropshipping/category-demand', params: params ?? {} }),
+    }),
+
+    getTrends: builder.query<TrendsSnapshot, void>({
+      query: () => '/trends',
+    }),
+    generateMarketingPost: builder.mutation<GeneratedPost, { productId: string }>({
+      query: (body) => ({ url: '/marketing/generate-post', method: 'POST', body }),
+    }),
+    sendChatMessage: builder.mutation<ChatbotReply, { message: string }>({
+      query: (body) => ({ url: '/chatbot/message', method: 'POST', body }),
+    }),
   }),
 });
 
@@ -382,4 +469,10 @@ export const {
   useCreateBodyProfileMutation,
   useGetMyBodyProfileQuery,
   useRecommendSizeMutation,
+  useGetTopSellingQuery,
+  useGetRestockAlertsQuery,
+  useGetCategoryDemandQuery,
+  useGetTrendsQuery,
+  useGenerateMarketingPostMutation,
+  useSendChatMessageMutation,
 } = apiSlice;

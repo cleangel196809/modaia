@@ -16,6 +16,10 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { PaymentsModule } from './modules/payments/payments.module';
 import { BodyProfilesModule } from './modules/body-profiles/body-profiles.module';
 import { SizeAdvisorModule } from './modules/size-advisor/size-advisor.module';
+import { DropshippingModule } from './modules/dropshipping/dropshipping.module';
+import { TrendsModule } from './modules/trends/trends.module';
+import { MarketingModule } from './modules/marketing/marketing.module';
+import { ChatbotModule } from './modules/chatbot/chatbot.module';
 
 @Module({
   imports: [
@@ -53,6 +57,10 @@ import { SizeAdvisorModule } from './modules/size-advisor/size-advisor.module';
     PaymentsModule,
     BodyProfilesModule,
     SizeAdvisorModule,
+    DropshippingModule,
+    TrendsModule,
+    MarketingModule,
+    ChatbotModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

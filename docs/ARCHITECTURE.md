@@ -4,8 +4,8 @@
 
 ModaIA Closet es una plataforma SaaS/Ecommerce modular. Este documento describe la arquitectura objetivo completa (12 módulos) y el estado real de lo implementado en este repositorio (módulo core).
 
-**Implementado en este repo:** Auth (JWT), Users, Categories, Products (catálogo), Inventory, Providers (marketplace de proveedores), Orders/Payments/Notifications (carrito y checkout), BodyProfiles (medición corporal IA), SizeAdvisor (motor de tallas), Probador virtual 3D MVP (frontend).
-**Diseñado, no implementado aún:** dropshipping, IA de tendencias, marketing automatizado, chatbot, experiencia premium, dashboard ejecutivo. Ver [ROADMAP.md](ROADMAP.md).
+**Implementado en este repo:** Auth (JWT), Users, Categories, Products (catálogo), Inventory, Providers (marketplace de proveedores), Orders/Payments/Notifications (carrito y checkout), BodyProfiles (medición corporal IA), SizeAdvisor (motor de tallas), Probador virtual 3D MVP (frontend), Dropshipping (real), Trends/Marketing/Chatbot (MVP con mocks/reglas etiquetados — ver más abajo).
+**Diseñado, no implementado aún:** experiencia premium, dashboard ejecutivo. Ver [ROADMAP.md](ROADMAP.md).
 
 ## 2. Arquitectura empresarial (alto nivel)
 
@@ -66,8 +66,13 @@ apps/api (NestJS)
   │                       por cliente/proveedor/admin
   ├─ PaymentsModule    → integración Wompi (Web Checkout + webhook) + simulador solo-dev
   ├─ NotificationsModule → confirmación de pedido (stub: loguea, listo para SendGrid/Twilio)
-  └─ BodyProfilesModule → guarda las medidas estimadas por MediaPipe (el cálculo de IA corre en el navegador,
-                          no en este backend — ver más abajo)
+  ├─ BodyProfilesModule → guarda las medidas estimadas por MediaPipe (el cálculo de IA corre en el navegador,
+  │                       no en este backend — ver más abajo)
+  ├─ SizeAdvisorModule  → recomendación de talla a partir del perfil corporal
+  ├─ DropshippingModule → insights reales sobre pedidos/inventario propios (sin mocks)
+  ├─ TrendsModule       → snapshot de tendencias — dataset de ejemplo, sin conexión a redes reales
+  ├─ MarketingModule    → generador de copy/hashtags por plantillas, sin LLM real
+  └─ ChatbotModule      → asistente por reglas/palabras clave, sin Azure OpenAI real
 
 PostgreSQL (TypeORM, migraciones versionadas)
 Redis (reservado para cache de catálogo y sesiones — no usado aún por el core)
@@ -116,6 +121,8 @@ Redis (reservado para cache de catálogo y sesiones — no usado aún por el cor
 
 **Por qué la foto se sube en vez de exigir cámara en vivo**: la extracción de landmarks funciona igual sobre una imagen ya tomada, y subir una foto es más fácil de probar/depurar (y de usar en cualquier dispositivo, incluyendo los que no tienen buena cámara frontal) que forzar un flujo de captura en vivo con permisos de cámara — que además no se puede automatizar de forma confiable con las herramientas de verificación de este entorno. Nada en el diseño impide añadir captura en vivo después; solo cambiaría cómo se obtiene el `HTMLImageElement`, no el resto del pipeline.
 
+**Bug real encontrado en la verificación — landmarks fuera de cuadro producían medidas absurdas**: al probar con una foto real (una fotografía de moda recortada a la altura de la falda, sin tobillos visibles), MediaPipe igual devolvió coordenadas para los tobillos — "adivinadas" por el modelo con `visibility` baja en vez de fallar — y el cálculo original las usó sin filtrar, produciendo "busto: 185.7 cm" para una persona de 165 cm. La causa: la calibración estatura→cm depende por completo de la distancia nariz-tobillo, así que un tobillo mal ubicado arruina todas las demás medidas derivadas. `computeMeasurements()` ahora valida `visibility >= 0.6` en nariz/tobillos/hombros/cadera antes de calibrar, y además aplica una red de seguridad de rangos humanos plausibles (`assertPlausible`) sobre el resultado final — si cualquiera de las dos validaciones falla, se lanza `UnreliablePhotoError` y la UI pide una foto de cuerpo completo en vez de mostrar un número con apariencia de medición real pero sin sentido. Esto se descubrió con una foto pública real, no con datos sintéticos — confirma que el guardrail era necesario, no defensivo por exceso de cautela.
+
 ## Módulo Motor de tallas (Fase 2 MVP)
 
 Se implementó `POST /size-advisor/recommend` (JWT requerido) para calcular:
@@ -138,6 +145,24 @@ Se agregó una experiencia inicial en `/probador` usando Three.js:
 - verificación de soporte WebXR en navegador
 
 Este MVP valida el flujo UX y el pipeline técnico de render en cliente. La simulación física avanzada de tela, avatar 3D personalizado y captura de video se planifican en la siguiente iteración.
+
+## Módulo Dropshipping inteligente (Fase 3 — el único 100% real de la fase)
+
+**Por qué este sí es real y los otros tres de la fase no**: dropshipping/tendencias internas de producto no dependen de ninguna API externa — toda la señal que necesita ya vive en `orders`, `order_items` e `inventory_movements` de este mismo repo. `DropshippingService` (`apps/api/src/modules/dropshipping/dropshipping.service.ts`) hace tres análisis sobre datos reales, no de ejemplo:
+
+- **`topSelling()`** — suma `OrderItem.quantity` de pedidos `paid` en una ventana de días, agrupado por producto.
+- **`restockAlerts()`** — cruza la velocidad de venta real (unidades/día en la ventana) con el stock actual y `Product.leadTimeDays`: si al ritmo de venta actual el stock se agota antes de que llegue un reabastecimiento, genera alerta. A propósito **no** se dispara para productos con poco stock pero sin ventas recientes — ese caso ya lo cubre `InventoryService.findLowStockAlerts()`; mezclar ambos habría duplicado la misma señal con distinto significado.
+- **`categoryDemand()`** — unidades vendidas ÷ prendas activas por categoría, para detectar categorías con poco catálogo pero mucha demanda (candidatas a que se sumen más prendas). Solo tiene sentido a nivel plataforma (admin), no por proveedor.
+
+Ownership igual que en Products/Inventory/Orders: un `provider` autenticado solo ve `topSelling`/`restockAlerts` de sus propias prendas (filtro por `providerId` a nivel de query, no en el cliente); `categoryDemand` es admin-only.
+
+## Módulos Fase 3 con mock/plantillas/reglas declaradas (Tendencias, Marketing, Chatbot)
+
+Los tres necesitan una API externa con credenciales que no existen en este entorno — mismo problema que Wompi (pagos) y Azure AI Vision (medición corporal), documentado en sus respectivas secciones. La decisión en los tres casos fue la misma: **dejar el contrato de API, el frontend y el punto de reemplazo exacto ya armados**, en vez de omitir el módulo o simular una integración que no existe sin decirlo.
+
+- **`TrendsService.getSnapshot()`** (`apps/api/src/modules/trends/`) devuelve un dataset fijo de colores/estilos/hashtags con `source: 'example-data'` y un `disclaimer` que la UI (`/admin/tendencias`) muestra tal cual, sin suavizarlo. Conectar Google Trends/Instagram Graph API real es reemplazar este único método.
+- **`MarketingService.generatePost()`** (`apps/api/src/modules/marketing/`) arma caption + hashtags con plantillas de texto rellenadas con datos reales del producto (nombre, material, categoría) — no hay modelo de lenguaje generando el texto. Respeta el mismo ownership que Products: un proveedor solo genera contenido para sus propias prendas. El botón "Generar contenido" vive en `/proveedor` y `/admin/productos`.
+- **`ChatbotService.reply()`** (`apps/api/src/modules/chatbot/`) hace coincidencia de palabras clave (talla, pago, envío, categorías de prenda) contra el catálogo real — no es Azure OpenAI. Es el único endpoint de todo el backend sin `JwtAuthGuard`: un visitante sin cuenta también necesita poder preguntar antes de registrarse, y no hay nada sensible en la respuesta (solo catálogo público + FAQ).
 
 ## 5. Seguridad implementada vs. pendiente
 

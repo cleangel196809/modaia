@@ -21,7 +21,12 @@ import { BodySilhouette } from '@/components/BodySilhouette';
 import type { RootState } from '@/store/store';
 import { useCreateBodyProfileMutation, useGetMyBodyProfileQuery } from '@/store/api/apiSlice';
 import { getPoseLandmarker } from '@/lib/poseLandmarker';
-import { computeMeasurements, type BodyMeasurements, type NormalizedLandmark } from '@/lib/bodyMeasurement';
+import {
+  computeMeasurements,
+  UnreliablePhotoError,
+  type BodyMeasurements,
+  type NormalizedLandmark,
+} from '@/lib/bodyMeasurement';
 
 const CONNECTIONS: [number, number][] = [
   [11, 12], // hombros
@@ -91,7 +96,11 @@ export default function BodyMeasurementPage() {
       setMeasurements(computed);
       drawOverlay(landmarks, image);
     } catch (err) {
-      setError('Ocurrió un error analizando la foto. Intenta de nuevo.');
+      if (err instanceof UnreliablePhotoError) {
+        setError(err.message);
+      } else {
+        setError('Ocurrió un error analizando la foto. Intenta de nuevo.');
+      }
     } finally {
       setAnalyzing(false);
     }

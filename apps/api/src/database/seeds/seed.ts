@@ -120,11 +120,11 @@ async function seed() {
   }
 
   const CATEGORY_IMAGE: Record<string, string> = {
-    'blusas-formales': '/products/blusa-formal.svg',
-    'blusas-casuales': '/products/blusa-casual.svg',
-    chaquetas: '/products/chaqueta.svg',
-    conjuntos: '/products/conjunto.svg',
-    'nueva-coleccion': '/products/nueva-coleccion.svg',
+    'blusas-formales': '/products/blusa-formal.jpg',
+    'blusas-casuales': '/products/blusa-casual.jpg',
+    chaquetas: '/products/chaqueta.jpg',
+    conjuntos: '/products/conjunto.jpg',
+    'nueva-coleccion': '/products/nueva-coleccion.jpg',
   };
 
   const demoProducts = [

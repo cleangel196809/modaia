@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { store } from '@/store/store';
 import { theme } from '@/theme/theme';
+import { ChatWidget } from '@/components/ChatWidget';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -12,6 +13,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         {children}
+        <ChatWidget />
       </ThemeProvider>
     </Provider>
   );
