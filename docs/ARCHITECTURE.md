@@ -144,7 +144,18 @@ Se agregó una experiencia inicial en `/probador` usando Three.js:
 - animación de movimiento base
 - verificación de soporte WebXR en navegador
 
-Este MVP valida el flujo UX y el pipeline técnico de render en cliente. La simulación física avanzada de tela, avatar 3D personalizado y captura de video se planifican en la siguiente iteración.
+Este MVP valida el flujo UX y el pipeline técnico de render en cliente. La simulación física avanzada de tela y el avatar 3D personalizado se planifican en la siguiente iteración.
+
+### Probador con cámara en vivo (`/probador/camara/[id]`)
+
+A diferencia del maniquí genérico de arriba, esta vista está atada a un producto real y usa la cámara del dispositivo (PC o celular) en vivo:
+
+- `getUserMedia` pide la cámara (frontal o trasera, elegible en la UI); requiere gesto explícito del usuario (botón "Activar cámara") por las políticas de autoplay de los navegadores.
+- `getVideoPoseLandmarker()` (`apps/web/src/lib/poseLandmarker.ts`) corre MediaPipe Pose Landmarker en modo `VIDEO` (`detectForVideo` por cuadro, con `requestAnimationFrame`) — mismo modelo que usa la medición corporal en `/medidas`, pero en modo streaming en vez de una sola imagen, y con `delegate: 'GPU'` por el requisito de rendimiento en tiempo real.
+- `computeTorsoTransform()` (`apps/web/src/lib/arOverlay.ts`) calcula centro/ancho/alto/rotación del torso a partir de los landmarks de hombros (11, 12) y cadera (23, 24) de cada cuadro.
+- La foto real del producto (`product.images[0]`) se dibuja en el `<canvas>` con esa transformación, semitransparente.
+
+**Qué es y qué no es esto**: es un ajuste de posición/tamaño/rotación en tiempo real sobre un rectángulo de la foto real del producto, con seguimiento corporal genuino — no un recorte de la silueta de la prenda (la foto no está segmentada del fondo) ni una simulación física de tela. Un resultado más fotorrealista (que la prenda "siga" los pliegues del cuerpo, recorte exacto de bordes) requeriría un motor de AR de moda dedicado con modelos de segmentación de ropa entrenados para eso (ej. Zeekit, Vue.ai) — son servicios de pago con su propia integración, no algo que MediaPipe resuelva out-of-the-box. Se documenta así explícitamente en vez de dar la impresión de un try-on fotorrealista que no es.
 
 ## Módulo Dropshipping inteligente (Fase 3 — el único 100% real de la fase)
 

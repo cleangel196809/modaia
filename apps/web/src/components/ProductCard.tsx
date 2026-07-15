@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -14,6 +15,7 @@ import {
   Button,
 } from '@mui/material';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+import CameraAltOutlinedIcon from '@mui/icons-material/CameraAltOutlined';
 import type { Product } from '@/store/api/apiSlice';
 import { addItem } from '@/store/cartSlice';
 
@@ -25,6 +27,7 @@ const currencyFormatter = new Intl.NumberFormat('es-CO', {
 
 export function ProductCard({ product }: { product: Product }) {
   const dispatch = useDispatch();
+  const router = useRouter();
   const image = product.images?.[0];
   const [size, setSize] = useState(product.sizes?.[0] ?? '');
   const [color, setColor] = useState(product.colors?.[0] ?? '');
@@ -120,6 +123,14 @@ export function ProductCard({ product }: { product: Product }) {
           onClick={handleAddToCart}
         >
           {added ? 'Agregado' : 'Agregar al carrito'}
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<CameraAltOutlinedIcon />}
+          sx={{ mt: 1 }}
+          onClick={() => router.push(`/probador/camara/${product.id}`)}
+        >
+          Probar con mi cámara
         </Button>
       </CardContent>
     </Card>
