@@ -95,11 +95,23 @@ export default function CameraTryOnPage() {
         const transform = computeTorsoTransform(landmarks, canvas.width, canvas.height);
         if (transform) {
           detected = true;
+          // "Cover" en vez de estirar la foto completa al cuadro del torso: si se estira
+          // el ancho y el alto por separado (como antes) la foto queda deformada, y como
+          // es una foto de modelo (no un recorte plano de la prenda) se ve peor todavía.
+          // Con cover se respeta la proporción real de la imagen y se recorta el sobrante.
+          const imgRatio = garment.naturalWidth / garment.naturalHeight;
+          const boxRatio = transform.width / transform.height;
+          const drawWidth = imgRatio > boxRatio ? transform.height * imgRatio : transform.width;
+          const drawHeight = imgRatio > boxRatio ? transform.height : transform.width / imgRatio;
+
           ctx.save();
           ctx.globalAlpha = 0.88;
           ctx.translate(transform.centerX, transform.centerY);
           ctx.rotate(transform.angleRad);
-          ctx.drawImage(garment, -transform.width / 2, -transform.height / 2, transform.width, transform.height);
+          ctx.beginPath();
+          ctx.rect(-transform.width / 2, -transform.height / 2, transform.width, transform.height);
+          ctx.clip();
+          ctx.drawImage(garment, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
           ctx.restore();
         }
       }

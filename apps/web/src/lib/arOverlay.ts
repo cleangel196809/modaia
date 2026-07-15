@@ -50,6 +50,16 @@ export function computeTorsoTransform(
   const torsoHeightPx = Math.hypot(hipMid.x - shoulderMid.x, hipMid.y - shoulderMid.y);
   if (shoulderWidthPx < 1 || torsoHeightPx < 1) return null;
 
+  // OJO: el landmark 11 ("left_shoulder") es el hombro IZQUIERDO ANATÓMICO de la persona,
+  // que de frente a la cámara aparece del lado DERECHO del cuadro (como en un espejo) — es
+  // decir ls.x suele ser MAYOR que rs.x. atan2(≈0, negativo) da un ángulo cercano a ±180°,
+  // no a 0°, para alguien parado derecho: eso dibujaba la prenda boca abajo. La línea
+  // hombro-hombro es simétrica (da igual qué punto se tome primero), así que normalizamos
+  // a [-90°, 90°] — un torso inclinado más de 90° no es un caso real a soportar.
+  let angleRad = Math.atan2(rs.y - ls.y, rs.x - ls.x);
+  if (angleRad > Math.PI / 2) angleRad -= Math.PI;
+  if (angleRad < -Math.PI / 2) angleRad += Math.PI;
+
   return {
     centerX: (shoulderMid.x + hipMid.x) / 2,
     centerY: (shoulderMid.y + hipMid.y) / 2,
@@ -57,6 +67,6 @@ export function computeTorsoTransform(
     // un poco más allá de la cadera — factores aproximados para que se vea proporcionada.
     width: shoulderWidthPx * 1.9,
     height: torsoHeightPx * 1.65,
-    angleRad: Math.atan2(rs.y - ls.y, rs.x - ls.x),
+    angleRad,
   };
 }
