@@ -22,7 +22,7 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.PROVIDER)
   findMine(@Query() query: ManageQueryProductDto, @CurrentUser() user: ActingUser) {
-    return this.productsService.findAll({ ...query, providerId: user.userId });
+    return this.productsService.findMine({ ...query, providerId: user.userId });
   }
 
   @Get()

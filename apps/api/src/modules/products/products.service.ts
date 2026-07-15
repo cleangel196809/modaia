@@ -14,10 +14,14 @@ export interface ProductWithMargin extends Product {
   marginPercentage: number;
 }
 
+/** Forma pública: nunca incluye `cost` (ni margen, que se deriva de cost). */
+export type PublicProduct = Omit<Product, 'cost'>;
+
 @Injectable()
 export class ProductsService {
   constructor(@InjectRepository(Product) private readonly repo: Repository<Product>) {}
 
+  /** Úsese solo detrás de JwtAuthGuard + RolesGuard(ADMIN, PROVIDER) — expone cost/margin. */
   private withMargin(product: Product): ProductWithMargin {
     const price = Number(product.price);
     const cost = Number(product.cost);
@@ -26,13 +30,19 @@ export class ProductsService {
     return { ...product, margin, marginPercentage };
   }
 
+  /** Úsese en rutas públicas/sin autenticación — nunca expone cost/margin. */
+  private toPublicResponse(product: Product): PublicProduct {
+    const { cost: _cost, ...publicProduct } = product;
+    return publicProduct;
+  }
+
   private assertOwnership(product: Product, actingUser: ActingUser): void {
     if (actingUser.role === Role.ADMIN) return;
     if (actingUser.role === Role.PROVIDER && product.providerId === actingUser.userId) return;
     throw new ForbiddenException('No puedes gestionar prendas que no te pertenecen');
   }
 
-  async findAll(query: QueryProductDto | ManageQueryProductDto) {
+  private async queryProducts(query: QueryProductDto | ManageQueryProductDto) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
 
@@ -62,20 +72,38 @@ export class ProductsService {
 
     const [items, total] = await qb.getManyAndCount();
 
-    return {
-      items: items.map((item) => this.withMargin(item)),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async findOne(id: string): Promise<ProductWithMargin> {
+  /** GET /products — público, sin guard. Nunca debe devolver cost/margin. */
+  async findAll(query: QueryProductDto) {
+    const { items, ...rest } = await this.queryProducts(query);
+    return { items: items.map((item) => this.toPublicResponse(item)), ...rest };
+  }
+
+  /** GET /products/mine — autenticado (ADMIN/PROVIDER). Sí incluye cost/margin. */
+  async findMine(query: ManageQueryProductDto) {
+    const { items, ...rest } = await this.queryProducts(query);
+    return { items: items.map((item) => this.withMargin(item)), ...rest };
+  }
+
+  private async getByIdOrThrow(id: string): Promise<Product> {
     const product = await this.repo.findOne({ where: { id }, relations: ['category'] });
     if (!product) {
       throw new NotFoundException('Producto no encontrado');
     }
+    return product;
+  }
+
+  /** GET /products/:id — público, sin guard. Nunca debe devolver cost/margin. */
+  async findOne(id: string): Promise<PublicProduct> {
+    const product = await this.getByIdOrThrow(id);
+    return this.toPublicResponse(product);
+  }
+
+  /** Uso interno tras create/update (rutas autenticadas de gestión) — sí incluye cost/margin. */
+  private async findOneWithMargin(id: string): Promise<ProductWithMargin> {
+    const product = await this.getByIdOrThrow(id);
     return this.withMargin(product);
   }
 
@@ -91,7 +119,7 @@ export class ProductsService {
     const providerId = actingUser.role === Role.PROVIDER ? actingUser.userId : dto.providerId ?? null;
     const product = this.repo.create({ ...dto, providerId });
     const saved = await this.repo.save(product);
-    return this.findOne(saved.id);
+    return this.findOneWithMargin(saved.id);
   }
 
   async update(id: string, dto: UpdateProductDto, actingUser: ActingUser): Promise<ProductWithMargin> {
@@ -111,7 +139,7 @@ export class ProductsService {
     const { providerId: _ignored, ...updatable } = dto;
     Object.assign(product, updatable);
     await this.repo.save(product);
-    return this.findOne(id);
+    return this.findOneWithMargin(id);
   }
 
   async remove(id: string, actingUser: ActingUser): Promise<void> {
